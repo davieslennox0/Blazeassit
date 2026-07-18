@@ -35,6 +35,7 @@ def save_settings(s: dict):
 class Engine:
     def __init__(self):
         self.loop = None  # main asyncio loop, set at startup (handlers run in threads)
+        self.demo_mode = False  # while True, never post to the real Blaze chat
         self.settings = load_settings()
         self.connected = False
         self.session_id = None
@@ -93,7 +94,7 @@ class Engine:
     def _queue_chat(self, text: str, reply_to: str | None = None):
         import asyncio
 
-        if not self.settings.get("channel_id") or not self._can_send() or self.loop is None:
+        if self.demo_mode or not self.settings.get("channel_id") or not self._can_send() or self.loop is None:
             return
         self.sent_minute.append(time.time())
 

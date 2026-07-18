@@ -107,9 +107,15 @@ async def update_settings(request: Request):
     return {"ok": True, "channel_id": engine.settings.get("channel_id")}
 
 
+_last_recap = 0.0
+
+
 @app.post("/api/recap")
-async def make_recap(request: Request):
-    _check_key(request)
+async def make_recap():
+    global _last_recap
+    if time.time() - _last_recap < 60:
+        raise HTTPException(429, "recap was just generated — try again in a minute")
+    _last_recap = time.time()
     return await asyncio.to_thread(engine.build_recap)
 
 
@@ -129,6 +135,7 @@ DEMO_CHAT = [
 
 
 async def _demo(minutes: float):
+    engine.demo_mode = True
     engine.on_stream(True)
     engine.viewers = random.randint(20, 40)
     end = time.time() + minutes * 60
@@ -155,18 +162,19 @@ async def _demo(minutes: float):
         log.exception("demo run failed")
     finally:
         # Whatever happens, the demo must not leave the dashboard stuck on LIVE.
+        engine.demo_mode = False
         engine.live = False
         engine.viewers = 0
 
 
 @app.post("/api/demo")
 async def demo(request: Request):
-    _check_key(request)
     global _demo_task
     body = await request.json()
     if _demo_task and not _demo_task.done():
         _demo_task.cancel()
         _demo_task = None
         return {"ok": True, "demo": "stopped"}
-    _demo_task = asyncio.create_task(_demo(float(body.get("minutes", 3))))
+    minutes = min(float(body.get("minutes", 3)), 5)
+    _demo_task = asyncio.create_task(_demo(minutes))
     return {"ok": True, "demo": "started"}

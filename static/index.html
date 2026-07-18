@@ -174,11 +174,15 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">
 let key = localStorage.dashKey || "";
 
 async function act(url, body) {
-  if (!key) { key = prompt("Dashboard key:") || ""; localStorage.dashKey = key; }
-  const r = await fetch(url, { method: "POST",
+  const send = () => fetch(url, { method: "POST",
     headers: { "Content-Type": "application/json", "x-dash-key": key },
     body: JSON.stringify(body || {}) });
-  if (r.status === 401) { localStorage.dashKey = key = ""; alert("Wrong key"); throw new Error("401"); }
+  let r = await send();
+  if (r.status === 401) {                       // only settings need the streamer key
+    key = prompt("Streamer key:") || ""; localStorage.dashKey = key;
+    r = await send();
+    if (r.status === 401) { localStorage.dashKey = key = ""; alert("Wrong key"); throw new Error("401"); }
+  }
   return r.json();
 }
 
