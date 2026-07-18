@@ -3,139 +3,248 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BlazeAssit — AI co-host</title>
+<title>BlazeAssit — Control Room</title>
 <style>
   :root {
-    --bg:#f6f7f9; --surface:#fff; --ink:#16191d; --ink2:#5b6470; --ink3:#8b93a0;
-    --line:#e4e7ec; --accent:#b45309; --accent-soft:#fdf1e3; --good:#1a7f4b; --crit:#b42318;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#101317; --surface:#191e24; --ink:#edf0f3; --ink2:#9aa4b0; --ink3:#6b7480;
-      --line:#2a313a; --accent:#f0b90b; --accent-soft:#2a2412; --good:#5ec98c; --crit:#f28b82; }
+    --bg:#0a0910; --card:rgba(255,255,255,.04); --card2:rgba(255,255,255,.06);
+    --line:rgba(255,255,255,.09); --ink:#f4f2ee; --ink2:#a9a4b8; --ink3:#6f6a80;
+    --gold:#f0b90b; --fire:#ff6a1f; --ember:#ff2d55; --good:#3ddc84;
+    --grad:linear-gradient(100deg,#f0b90b 0%,#ff6a1f 55%,#ff2d55 100%);
   }
   * { box-sizing:border-box; margin:0; }
   body { background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,sans-serif;
-    max-width:760px; margin:0 auto; padding:20px 16px 48px; }
-  h1 { font-size:18px; font-weight:650; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  h1 .flame { font-size:20px; }
-  .pill { font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:99px;
-    border:1px solid var(--line); color:var(--ink3); }
-  .pill.on { color:var(--good); border-color:var(--good); }
-  .pill.live { color:#fff; background:var(--crit); border-color:var(--crit); animation:pulse 2s infinite; }
-  @keyframes pulse { 50% { opacity:.6; } }
-  .sub { color:var(--ink2); font-size:13px; margin:4px 0 16px; }
-  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:10px; margin-bottom:12px; }
-  .tile { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:11px 14px; }
-  .tile .v { font-size:20px; font-weight:650; font-variant-numeric:tabular-nums; }
-  .tile .k { color:var(--ink2); font-size:12px; }
-  section { background:var(--surface); border:1px solid var(--line); border-radius:14px;
-    padding:15px 17px; margin-bottom:12px; }
-  h2 { font-size:12.5px; font-weight:600; color:var(--ink2); text-transform:uppercase;
-    letter-spacing:.05em; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; }
-  ul { list-style:none; }
+    max-width:1060px; margin:0 auto; padding:16px 16px 48px; }
+  body::before { content:""; position:fixed; inset:0; pointer-events:none;
+    background:radial-gradient(700px 420px at 90% -5%, rgba(255,106,31,.13), transparent 65%),
+               radial-gradient(600px 420px at -5% 40%, rgba(240,185,11,.07), transparent 60%); }
+
+  header { position:relative; display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:6px 0 16px; }
+  .logo { display:flex; align-items:center; gap:8px; font-weight:800; font-size:18px; text-decoration:none; color:var(--ink); }
+  .logo .f { filter:drop-shadow(0 0 10px rgba(255,106,31,.8)); }
+  .pill { font-size:11.5px; font-weight:700; padding:3px 11px; border-radius:99px;
+    border:1px solid var(--line); color:var(--ink3); letter-spacing:.02em; }
+  .pill.on { color:var(--good); border-color:rgba(61,220,132,.5); background:rgba(61,220,132,.07); }
+  .pill.live { color:#fff; background:var(--ember); border-color:var(--ember);
+    box-shadow:0 0 14px rgba(255,45,85,.6); animation:pulse 1.8s infinite; }
+  @keyframes pulse { 50% { opacity:.65; } }
+  .spacer { flex:1; }
+  .timer { font:700 14px ui-monospace,monospace; color:var(--gold); }
+
+  .grid { position:relative; display:grid; grid-template-columns:340px 1fr; gap:14px; align-items:start; }
+  @media (max-width:820px){ .grid { grid-template-columns:1fr; } }
+  .col { display:grid; gap:14px; }
+
+  section { background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:15px 17px; backdrop-filter:blur(6px); }
+  h2 { font-size:12px; font-weight:700; color:var(--ink3); text-transform:uppercase;
+    letter-spacing:.09em; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+
+  /* creator tools */
+  .cam { position:relative; border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9; }
+  .cam video { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
+  .cam .off { position:absolute; inset:0; display:flex; flex-direction:column; gap:6px; align-items:center;
+    justify-content:center; color:var(--ink3); font-size:13px; background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 12px, transparent 12px 24px); }
+  .cam .off .ico { font-size:26px; opacity:.8; }
+  .tools { display:flex; gap:9px; margin-top:11px; }
+  .tool { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px;
+    background:var(--card2); border:1px solid var(--line); border-radius:12px; cursor:pointer;
+    font:600 12px system-ui; color:var(--ink2); transition:.15s; user-select:none; }
+  .tool .ico { font-size:19px; }
+  .tool.active { color:#16090a; background:var(--grad); border-color:transparent;
+    box-shadow:0 3px 18px rgba(255,106,31,.4); }
+  .vu { display:flex; gap:3px; align-items:flex-end; height:26px; margin-top:10px; }
+  .vu span { flex:1; background:rgba(255,255,255,.09); border-radius:2px; height:15%; transition:height .06s; }
+  .vu span.hot { background:var(--grad); }
+
+  .tiles { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }
+  .tile { background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:10px 13px; }
+  .tile .v { font-size:20px; font-weight:750; font-variant-numeric:tabular-nums; }
+  .tile .k { color:var(--ink3); font-size:11.5px; }
+
+  ul { list-style:none; max-height:270px; overflow-y:auto; }
   li { padding:6px 0; border-top:1px solid var(--line); font-size:13.5px; }
   li:first-child { border-top:0; }
-  .t { color:var(--ink3); font-family:ui-monospace,monospace; font-size:12px; margin-right:8px; }
-  .who { color:var(--accent); font-weight:600; }
-  .hype-item { color:var(--ink); }
-  .hype-item .flame { margin-right:4px; }
+  .t { color:var(--ink3); font-family:ui-monospace,monospace; font-size:11.5px; margin-right:8px; }
+  .who { color:var(--gold); font-weight:650; }
   .qa .q { color:var(--ink2); }
-  .qa .a { display:block; padding:4px 0 0 16px; }
-  button, .btn { background:var(--accent); color:#fff; border:0; border-radius:9px; font:600 13px system-ui;
-    padding:8px 14px; cursor:pointer; text-decoration:none; display:inline-block; }
-  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); }
-  input, textarea { width:100%; background:var(--bg); border:1px solid var(--line); border-radius:9px;
-    color:var(--ink); font:14px system-ui; padding:8px 10px; margin:4px 0 10px; }
-  textarea { min-height:74px; resize:vertical; }
-  label { font-size:12.5px; color:var(--ink2); font-weight:600; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .copyblock { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
-    font-size:13.5px; white-space:pre-wrap; margin:8px 0; position:relative; }
-  .copyblock .cp { position:absolute; top:6px; right:6px; font-size:11px; padding:3px 8px; }
+  .qa .a { display:block; padding:3px 0 0 16px; color:var(--ink); }
   .muted { color:var(--ink3); font-size:13px; }
+
+  button, .btn { background:var(--grad); color:#16090a; border:0; border-radius:10px;
+    font:700 13px system-ui; padding:9px 15px; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--gold); border:1px solid rgba(240,185,11,.4); }
+  button.mini { font-size:11.5px; padding:5px 10px; }
+  input, textarea { width:100%; background:rgba(0,0,0,.35); border:1px solid var(--line); border-radius:10px;
+    color:var(--ink); font:14px system-ui; padding:8px 11px; margin:4px 0 10px; }
+  textarea { min-height:72px; resize:vertical; }
+  label { font-size:12px; color:var(--ink2); font-weight:650; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .toggle { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink2); }
-  footer { color:var(--ink3); font-size:12px; text-align:center; margin-top:14px; }
+  .copyblock { background:rgba(0,0,0,.35); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+    font-size:13.5px; white-space:pre-wrap; margin:8px 0; position:relative; }
+  .copyblock .cp { position:absolute; top:6px; right:6px; }
+  #loginBox { position:relative; margin-bottom:14px; }
 </style>
 </head>
 <body>
-<h1><span class="flame">🔥</span> BlazeAssit
+<header>
+  <a class="logo" href="/"><span class="f">🔥</span>BlazeAssit</a>
   <span class="pill" id="pAuth">auth</span>
   <span class="pill" id="pSock">events</span>
   <span class="pill" id="pLive">offline</span>
-</h1>
-<p class="sub">AI co-host for Blaze streamers — answers chat, marks hype moments, coaches engagement, writes your recap.</p>
+  <span class="spacer"></span>
+  <span class="timer" id="dur">00:00:00</span>
+</header>
 
-<div id="loginBox" style="display:none; margin-bottom:12px;">
-  <a class="btn" href="/login">Connect your Blaze account</a>
+<div id="loginBox" style="display:none;">
+  <a class="btn" href="/login">🔥 Connect your Blaze account</a>
 </div>
 
-<div class="tiles">
-  <div class="tile"><div class="v" id="viewers">—</div><div class="k">viewers</div></div>
-  <div class="tile"><div class="v" id="rate">—</div><div class="k">chat / min</div></div>
-  <div class="tile"><div class="v" id="follows">0</div><div class="k">new follows</div></div>
-  <div class="tile"><div class="v" id="tips">0</div><div class="k">tips</div></div>
-  <div class="tile"><div class="v" id="hypeN">0</div><div class="k">hype moments</div></div>
-</div>
+<div class="grid">
+  <div class="col">
+    <section>
+      <h2>Creator tools</h2>
+      <div class="cam">
+        <video id="camVid" autoplay playsinline muted></video>
+        <div class="off" id="camOff"><span class="ico">📷</span>camera off</div>
+      </div>
+      <div class="vu" id="vu"></div>
+      <div class="tools">
+        <div class="tool" id="tCam"><span class="ico">📷</span>Camera</div>
+        <div class="tool" id="tMic"><span class="ico">🎙️</span>Mic</div>
+        <div class="tool" id="tBot"><span class="ico">🤖</span>Co-host</div>
+        <div class="tool" id="tHype"><span class="ico">🔥</span>Callouts</div>
+      </div>
+    </section>
 
-<section>
-  <h2>Hype timeline <span class="muted" id="dur"></span></h2>
-  <ul id="hype"><li class="muted">Nothing yet — moments appear when chat surges, tips or raids land.</li></ul>
-</section>
+    <section>
+      <h2>Session</h2>
+      <div class="tiles">
+        <div class="tile"><div class="v" id="viewers">—</div><div class="k">viewers</div></div>
+        <div class="tile"><div class="v" id="rate">—</div><div class="k">chat / min</div></div>
+        <div class="tile"><div class="v" id="follows">0</div><div class="k">new follows</div></div>
+        <div class="tile"><div class="v" id="tips">0</div><div class="k">tips</div></div>
+        <div class="tile"><div class="v" id="subs">0</div><div class="k">subs</div></div>
+        <div class="tile"><div class="v" id="hypeN">0</div><div class="k">hype moments</div></div>
+      </div>
+    </section>
 
-<section>
-  <h2>Co-host answers</h2>
-  <ul id="answers"><li class="muted">When viewers ask questions, BlazeAssit answers in chat and logs it here.</li></ul>
-</section>
-
-<section>
-  <h2>Coaching nudges</h2>
-  <ul id="suggestions"><li class="muted">If engagement drops mid-stream, a topic suggestion appears here.</li></ul>
-</section>
-
-<section>
-  <h2>Live chat</h2>
-  <ul id="chat"><li class="muted">Waiting for messages…</li></ul>
-</section>
-
-<section>
-  <h2>Post-stream recap <button class="ghost" id="recapBtn" style="font-size:12px;padding:5px 10px;">Generate now</button></h2>
-  <div id="recap"><p class="muted">Generated automatically when the stream ends.</p></div>
-</section>
-
-<section>
-  <h2>Settings</h2>
-  <label>Channel slug</label><input id="slug" placeholder="your-channel" />
-  <label>Streamer name</label><input id="sname" placeholder="Display name" />
-  <label>FAQ notes for the co-host</label>
-  <textarea id="faq" placeholder="Schedule: Tue/Thu 8pm. Discord: discord.gg/... Setup: ..."></textarea>
-  <div class="row">
-    <label class="toggle"><input type="checkbox" id="botOn" style="width:auto" /> auto-answer</label>
-    <label class="toggle"><input type="checkbox" id="hypeOn" style="width:auto" /> hype callouts</label>
-    <button id="saveBtn">Save</button>
-    <button class="ghost" id="demoBtn">Run demo stream</button>
+    <section>
+      <h2>Settings <button class="ghost mini" id="demoBtn">Run demo</button></h2>
+      <label>Channel slug</label><input id="slug" placeholder="your-channel" />
+      <label>Streamer name</label><input id="sname" placeholder="Display name" />
+      <label>FAQ notes for the co-host</label>
+      <textarea id="faq" placeholder="Schedule: Tue/Thu 8pm · Discord: discord.gg/… · Setup: …"></textarea>
+      <div class="row"><button id="saveBtn">Save</button></div>
+    </section>
   </div>
-</section>
 
-<footer>BlazeAssit · built on the Blaze API for the Builder Challenge</footer>
+  <div class="col">
+    <section>
+      <h2>Hype timeline</h2>
+      <ul id="hype"><li class="muted">Moments appear when chat surges, tips or raids land.</li></ul>
+    </section>
+
+    <section>
+      <h2>Co-host answers</h2>
+      <ul id="answers"><li class="muted">When viewers ask questions, the co-host answers in chat and logs it here.</li></ul>
+    </section>
+
+    <section>
+      <h2>Coaching nudges</h2>
+      <ul id="suggestions"><li class="muted">If engagement drops mid-stream, a suggestion appears here.</li></ul>
+    </section>
+
+    <section>
+      <h2>Live chat</h2>
+      <ul id="chat"><li class="muted">Waiting for messages…</li></ul>
+    </section>
+
+    <section>
+      <h2>Post-stream recap <button class="ghost mini" id="recapBtn">Generate now</button></h2>
+      <div id="recap"><p class="muted">Generated automatically when the stream ends.</p></div>
+    </section>
+  </div>
+</div>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let key = localStorage.dashKey || "";
-const hdrs = () => ({ "Content-Type": "application/json", "x-dash-key": key });
 
 async function act(url, body) {
   if (!key) { key = prompt("Dashboard key:") || ""; localStorage.dashKey = key; }
-  const r = await fetch(url, { method: "POST", headers: hdrs(), body: JSON.stringify(body || {}) });
+  const r = await fetch(url, { method: "POST",
+    headers: { "Content-Type": "application/json", "x-dash-key": key },
+    body: JSON.stringify(body || {}) });
   if (r.status === 401) { localStorage.dashKey = key = ""; alert("Wrong key"); throw new Error("401"); }
   return r.json();
 }
 
+/* ---------- creator tools: camera + mic (local, in-browser) ---------- */
+let camStream = null, micStream = null, audioCtx = null, analyser = null, vuTimer = null;
+const VU_BARS = 24;
+$("vu").innerHTML = "<span></span>".repeat(VU_BARS);
+
+$("tCam").onclick = async () => {
+  if (camStream) {
+    camStream.getTracks().forEach(t => t.stop()); camStream = null;
+    $("camVid").srcObject = null; $("camOff").style.display = "flex";
+    $("tCam").classList.remove("active");
+    return;
+  }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    $("camVid").srcObject = camStream; $("camOff").style.display = "none";
+    $("tCam").classList.add("active");
+  } catch { alert("Camera permission denied"); }
+};
+
+$("tMic").onclick = async () => {
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop()); micStream = null;
+    clearInterval(vuTimer);
+    [...$("vu").children].forEach(b => { b.style.height = "15%"; b.classList.remove("hot"); });
+    $("tMic").classList.remove("active");
+    return;
+  }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = audioCtx || new AudioContext();
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    vuTimer = setInterval(() => {
+      analyser.getByteFrequencyData(data);
+      const bars = $("vu").children;
+      for (let i = 0; i < VU_BARS; i++) {
+        const v = data[Math.floor(i * data.length / VU_BARS)] / 255;
+        bars[i].style.height = Math.max(15, v * 100) + "%";
+        bars[i].classList.toggle("hot", v > 0.08);
+      }
+    }, 60);
+    $("tMic").classList.add("active");
+  } catch { alert("Mic permission denied"); }
+};
+
+async function toggleSetting(k, el) {
+  const on = !el.classList.contains("active");
+  el.classList.toggle("active", on);
+  await act("/api/settings", { [k]: on });
+}
+$("tBot").onclick  = () => toggleSetting("bot_enabled", $("tBot"));
+$("tHype").onclick = () => toggleSetting("hype_callouts", $("tHype"));
+
+/* ---------- live state ---------- */
 let settingsLoaded = false;
 function fill(list, id, render, empty) {
-  $(id).innerHTML = list.length
-    ? list.map(render).join("")
-    : `<li class="muted">${empty}</li>`;
+  $(id).innerHTML = list.length ? list.map(render).join("") : `<li class="muted">${empty}</li>`;
+}
+function block(title, text) {
+  return `<div class="copyblock"><strong>${title}</strong>
+<button class="cp ghost mini" onclick="navigator.clipboard.writeText(this.parentNode.innerText.split('\\n').slice(1).join('\\n'))">copy</button>
+${esc(text)}</div>`;
 }
 
 async function refresh() {
@@ -146,28 +255,29 @@ async function refresh() {
     $("pSock").className = "pill" + (s.connected ? " on" : "");
     $("pSock").textContent = s.connected ? "✓ events live" : "events off";
     $("pLive").className = "pill" + (s.live ? " live" : "");
-    $("pLive").textContent = s.live ? "LIVE" : "offline";
+    $("pLive").textContent = s.live ? "● LIVE" : "offline";
     $("loginBox").style.display = s.authorized ? "none" : "block";
 
     $("viewers").textContent = s.viewers ?? "—";
     $("rate").textContent = s.chat_rate ?? "—";
     $("follows").textContent = s.counts.follows;
     $("tips").textContent = s.counts.tips;
+    $("subs").textContent = s.counts.subs;
     $("hypeN").textContent = s.hype.length;
-    if (s.session_start) {
-      const m = Math.floor((Date.now()/1000 - s.session_start) / 60);
-      $("dur").textContent = `session ${Math.floor(m/60)}h ${m%60}m`;
+    if (s.session_start && s.live) {
+      const sec = Math.floor(Date.now()/1000 - s.session_start);
+      $("dur").textContent = [sec/3600, sec/60%60, sec%60].map(n => String(Math.floor(n)).padStart(2,"0")).join(":");
     }
 
     fill([...s.hype].reverse(), "hype", h =>
-      `<li class="hype-item"><span class="t">${h.t}</span><span class="flame">🔥</span>${esc(h.reason)}</li>`,
-      "Nothing yet — moments appear when chat surges, tips or raids land.");
+      `<li><span class="t">${h.t}</span>🔥 ${esc(h.reason)}</li>`,
+      "Moments appear when chat surges, tips or raids land.");
     fill([...s.answers].reverse(), "answers", a =>
       `<li class="qa"><span class="t">${a.t}</span><span class="who">${esc(a.user)}</span> <span class="q">${esc(a.q)}</span><span class="a">↳ ${esc(a.a)}</span></li>`,
-      "When viewers ask questions, BlazeAssit answers in chat and logs it here.");
+      "When viewers ask questions, the co-host answers in chat and logs it here.");
     fill([...s.suggestions].reverse(), "suggestions", x =>
       `<li><span class="t">${x.t}</span>💡 ${esc(x.text)}</li>`,
-      "If engagement drops mid-stream, a topic suggestion appears here.");
+      "If engagement drops mid-stream, a suggestion appears here.");
     fill([...s.recent_chat].reverse(), "chat", c =>
       `<li><span class="t">${c.t}</span><span class="who">${esc(c.user)}</span> ${esc(c.text)}</li>`,
       "Waiting for messages…");
@@ -185,17 +295,11 @@ async function refresh() {
       $("slug").value = s.settings.channel_slug || "";
       $("sname").value = s.settings.streamer_name || "";
       $("faq").value = s.settings.faq || "";
-      $("botOn").checked = !!s.settings.bot_enabled;
-      $("hypeOn").checked = !!s.settings.hype_callouts;
+      $("tBot").classList.toggle("active", !!s.settings.bot_enabled);
+      $("tHype").classList.toggle("active", !!s.settings.hype_callouts);
       settingsLoaded = true;
     }
   } catch (e) { /* transient */ }
-}
-
-function block(title, text) {
-  return `<div class="copyblock"><strong>${title}</strong>
-<button class="cp ghost" onclick="navigator.clipboard.writeText(this.parentNode.innerText.split('\\n').slice(1).join('\\n'))">copy</button>
-${esc(text)}</div>`;
 }
 
 $("saveBtn").onclick = async () => {
@@ -203,15 +307,13 @@ $("saveBtn").onclick = async () => {
     channel_slug: $("slug").value.trim(),
     streamer_name: $("sname").value.trim(),
     faq: $("faq").value,
-    bot_enabled: $("botOn").checked,
-    hype_callouts: $("hypeOn").checked,
   });
   alert(r.channel_id ? "Saved — channel linked: " + r.channel_id : "Saved");
 };
 $("recapBtn").onclick = async () => { await act("/api/recap"); refresh(); };
 $("demoBtn").onclick = async () => {
   const r = await act("/api/demo", { minutes: 3 });
-  $("demoBtn").textContent = r.demo === "started" ? "Stop demo" : "Run demo stream";
+  $("demoBtn").textContent = r.demo === "started" ? "Stop demo" : "Run demo";
 };
 
 refresh();

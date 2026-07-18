@@ -44,6 +44,11 @@ def _check_key(request: Request):
 
 @app.get("/")
 def index():
+    return FileResponse(STATIC / "landing.html")
+
+
+@app.get("/dashboard")
+def dashboard():
     return FileResponse(STATIC / "index.html")
 
 
@@ -63,7 +68,7 @@ async def callback(code: str = "", state: str = ""):
     if not code:
         raise HTTPException(400, "missing code")
     await oauth.exchange_code(code, state)
-    return RedirectResponse("/?authorized=1")
+    return RedirectResponse("/dashboard?authorized=1")
 
 
 @app.get("/api/state")
