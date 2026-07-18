@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BlazeAssit — AI co-host</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --surface:#fff; --ink:#16191d; --ink2:#5b6470; --ink3:#8b93a0;
+    --line:#e4e7ec; --accent:#b45309; --accent-soft:#fdf1e3; --good:#1a7f4b; --crit:#b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#101317; --surface:#191e24; --ink:#edf0f3; --ink2:#9aa4b0; --ink3:#6b7480;
+      --line:#2a313a; --accent:#f0b90b; --accent-soft:#2a2412; --good:#5ec98c; --crit:#f28b82; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,sans-serif;
+    max-width:760px; margin:0 auto; padding:20px 16px 48px; }
+  h1 { font-size:18px; font-weight:650; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  h1 .flame { font-size:20px; }
+  .pill { font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:99px;
+    border:1px solid var(--line); color:var(--ink3); }
+  .pill.on { color:var(--good); border-color:var(--good); }
+  .pill.live { color:#fff; background:var(--crit); border-color:var(--crit); animation:pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity:.6; } }
+  .sub { color:var(--ink2); font-size:13px; margin:4px 0 16px; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:10px; margin-bottom:12px; }
+  .tile { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:11px 14px; }
+  .tile .v { font-size:20px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .tile .k { color:var(--ink2); font-size:12px; }
+  section { background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:15px 17px; margin-bottom:12px; }
+  h2 { font-size:12.5px; font-weight:600; color:var(--ink2); text-transform:uppercase;
+    letter-spacing:.05em; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; }
+  ul { list-style:none; }
+  li { padding:6px 0; border-top:1px solid var(--line); font-size:13.5px; }
+  li:first-child { border-top:0; }
+  .t { color:var(--ink3); font-family:ui-monospace,monospace; font-size:12px; margin-right:8px; }
+  .who { color:var(--accent); font-weight:600; }
+  .hype-item { color:var(--ink); }
+  .hype-item .flame { margin-right:4px; }
+  .qa .q { color:var(--ink2); }
+  .qa .a { display:block; padding:4px 0 0 16px; }
+  button, .btn { background:var(--accent); color:#fff; border:0; border-radius:9px; font:600 13px system-ui;
+    padding:8px 14px; cursor:pointer; text-decoration:none; display:inline-block; }
+  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+  input, textarea { width:100%; background:var(--bg); border:1px solid var(--line); border-radius:9px;
+    color:var(--ink); font:14px system-ui; padding:8px 10px; margin:4px 0 10px; }
+  textarea { min-height:74px; resize:vertical; }
+  label { font-size:12.5px; color:var(--ink2); font-weight:600; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .copyblock { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+    font-size:13.5px; white-space:pre-wrap; margin:8px 0; position:relative; }
+  .copyblock .cp { position:absolute; top:6px; right:6px; font-size:11px; padding:3px 8px; }
+  .muted { color:var(--ink3); font-size:13px; }
+  .toggle { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink2); }
+  footer { color:var(--ink3); font-size:12px; text-align:center; margin-top:14px; }
+</style>
+</head>
+<body>
+<h1><span class="flame">🔥</span> BlazeAssit
+  <span class="pill" id="pAuth">auth</span>
+  <span class="pill" id="pSock">events</span>
+  <span class="pill" id="pLive">offline</span>
+</h1>
+<p class="sub">AI co-host for Blaze streamers — answers chat, marks hype moments, coaches engagement, writes your recap.</p>
+
+<div id="loginBox" style="display:none; margin-bottom:12px;">
+  <a class="btn" href="/login">Connect your Blaze account</a>
+</div>
+
+<div class="tiles">
+  <div class="tile"><div class="v" id="viewers">—</div><div class="k">viewers</div></div>
+  <div class="tile"><div class="v" id="rate">—</div><div class="k">chat / min</div></div>
+  <div class="tile"><div class="v" id="follows">0</div><div class="k">new follows</div></div>
+  <div class="tile"><div class="v" id="tips">0</div><div class="k">tips</div></div>
+  <div class="tile"><div class="v" id="hypeN">0</div><div class="k">hype moments</div></div>
+</div>
+
+<section>
+  <h2>Hype timeline <span class="muted" id="dur"></span></h2>
+  <ul id="hype"><li class="muted">Nothing yet — moments appear when chat surges, tips or raids land.</li></ul>
+</section>
+
+<section>
+  <h2>Co-host answers</h2>
+  <ul id="answers"><li class="muted">When viewers ask questions, BlazeAssit answers in chat and logs it here.</li></ul>
+</section>
+
+<section>
+  <h2>Coaching nudges</h2>
+  <ul id="suggestions"><li class="muted">If engagement drops mid-stream, a topic suggestion appears here.</li></ul>
+</section>
+
+<section>
+  <h2>Live chat</h2>
+  <ul id="chat"><li class="muted">Waiting for messages…</li></ul>
+</section>
+
+<section>
+  <h2>Post-stream recap <button class="ghost" id="recapBtn" style="font-size:12px;padding:5px 10px;">Generate now</button></h2>
+  <div id="recap"><p class="muted">Generated automatically when the stream ends.</p></div>
+</section>
+
+<section>
+  <h2>Settings</h2>
+  <label>Channel slug</label><input id="slug" placeholder="your-channel" />
+  <label>Streamer name</label><input id="sname" placeholder="Display name" />
+  <label>FAQ notes for the co-host</label>
+  <textarea id="faq" placeholder="Schedule: Tue/Thu 8pm. Discord: discord.gg/... Setup: ..."></textarea>
+  <div class="row">
+    <label class="toggle"><input type="checkbox" id="botOn" style="width:auto" /> auto-answer</label>
+    <label class="toggle"><input type="checkbox" id="hypeOn" style="width:auto" /> hype callouts</label>
+    <button id="saveBtn">Save</button>
+    <button class="ghost" id="demoBtn">Run demo stream</button>
+  </div>
+</section>
+
+<footer>BlazeAssit · built on the Blaze API for the Builder Challenge</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let key = localStorage.dashKey || "";
+const hdrs = () => ({ "Content-Type": "application/json", "x-dash-key": key });
+
+async function act(url, body) {
+  if (!key) { key = prompt("Dashboard key:") || ""; localStorage.dashKey = key; }
+  const r = await fetch(url, { method: "POST", headers: hdrs(), body: JSON.stringify(body || {}) });
+  if (r.status === 401) { localStorage.dashKey = key = ""; alert("Wrong key"); throw new Error("401"); }
+  return r.json();
+}
+
+let settingsLoaded = false;
+function fill(list, id, render, empty) {
+  $(id).innerHTML = list.length
+    ? list.map(render).join("")
+    : `<li class="muted">${empty}</li>`;
+}
+
+async function refresh() {
+  try {
+    const s = await (await fetch("/api/state")).json();
+    $("pAuth").className = "pill" + (s.authorized ? " on" : "");
+    $("pAuth").textContent = s.authorized ? "✓ authorized" : "not authorized";
+    $("pSock").className = "pill" + (s.connected ? " on" : "");
+    $("pSock").textContent = s.connected ? "✓ events live" : "events off";
+    $("pLive").className = "pill" + (s.live ? " live" : "");
+    $("pLive").textContent = s.live ? "LIVE" : "offline";
+    $("loginBox").style.display = s.authorized ? "none" : "block";
+
+    $("viewers").textContent = s.viewers ?? "—";
+    $("rate").textContent = s.chat_rate ?? "—";
+    $("follows").textContent = s.counts.follows;
+    $("tips").textContent = s.counts.tips;
+    $("hypeN").textContent = s.hype.length;
+    if (s.session_start) {
+      const m = Math.floor((Date.now()/1000 - s.session_start) / 60);
+      $("dur").textContent = `session ${Math.floor(m/60)}h ${m%60}m`;
+    }
+
+    fill([...s.hype].reverse(), "hype", h =>
+      `<li class="hype-item"><span class="t">${h.t}</span><span class="flame">🔥</span>${esc(h.reason)}</li>`,
+      "Nothing yet — moments appear when chat surges, tips or raids land.");
+    fill([...s.answers].reverse(), "answers", a =>
+      `<li class="qa"><span class="t">${a.t}</span><span class="who">${esc(a.user)}</span> <span class="q">${esc(a.q)}</span><span class="a">↳ ${esc(a.a)}</span></li>`,
+      "When viewers ask questions, BlazeAssit answers in chat and logs it here.");
+    fill([...s.suggestions].reverse(), "suggestions", x =>
+      `<li><span class="t">${x.t}</span>💡 ${esc(x.text)}</li>`,
+      "If engagement drops mid-stream, a topic suggestion appears here.");
+    fill([...s.recent_chat].reverse(), "chat", c =>
+      `<li><span class="t">${c.t}</span><span class="who">${esc(c.user)}</span> ${esc(c.text)}</li>`,
+      "Waiting for messages…");
+
+    if (s.recap && s.recap.summary) {
+      const ts = (s.recap.timestamps || []).map(x => `${x.t} — ${x.note}`).join("\n");
+      $("recap").innerHTML =
+        block("Summary", s.recap.summary) +
+        (ts ? block("Timestamps", ts) : "") +
+        (s.recap.tweet ? block("Tweet", s.recap.tweet) : "") +
+        (s.recap.discord ? block("Discord announcement", s.recap.discord) : "");
+    }
+
+    if (!settingsLoaded && s.settings) {
+      $("slug").value = s.settings.channel_slug || "";
+      $("sname").value = s.settings.streamer_name || "";
+      $("faq").value = s.settings.faq || "";
+      $("botOn").checked = !!s.settings.bot_enabled;
+      $("hypeOn").checked = !!s.settings.hype_callouts;
+      settingsLoaded = true;
+    }
+  } catch (e) { /* transient */ }
+}
+
+function block(title, text) {
+  return `<div class="copyblock"><strong>${title}</strong>
+<button class="cp ghost" onclick="navigator.clipboard.writeText(this.parentNode.innerText.split('\\n').slice(1).join('\\n'))">copy</button>
+${esc(text)}</div>`;
+}
+
+$("saveBtn").onclick = async () => {
+  const r = await act("/api/settings", {
+    channel_slug: $("slug").value.trim(),
+    streamer_name: $("sname").value.trim(),
+    faq: $("faq").value,
+    bot_enabled: $("botOn").checked,
+    hype_callouts: $("hypeOn").checked,
+  });
+  alert(r.channel_id ? "Saved — channel linked: " + r.channel_id : "Saved");
+};
+$("recapBtn").onclick = async () => { await act("/api/recap"); refresh(); };
+$("demoBtn").onclick = async () => {
+  const r = await act("/api/demo", { minutes: 3 });
+  $("demoBtn").textContent = r.demo === "started" ? "Stop demo" : "Run demo stream";
+};
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
