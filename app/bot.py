@@ -115,9 +115,9 @@ async def _handle(data):
 
 
 @sio.on("*")
-async def catch_all(event, data=None):
+async def catch_all(event, *args):
     try:
-        await _handle(data if data is not None else event)
+        await _handle(args[0] if args else event)
     except Exception:
         log.exception("event handling failed")
 

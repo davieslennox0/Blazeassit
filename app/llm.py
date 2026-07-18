@@ -14,13 +14,18 @@ _client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 def _chat(system: str, user: str, max_tokens=400) -> str:
     if _client is None:
         return ""
-    resp = _client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-        temperature=0.6,
-        max_tokens=max_tokens,
-    )
-    return (resp.choices[0].message.content or "").strip()
+    try:
+        resp = _client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+            temperature=0.6,
+            max_tokens=max_tokens,
+        )
+        return (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        # Rate limits and outages must never crash the event pipeline.
+        log.warning("groq call failed: %s", e)
+        return ""
 
 
 def answer_viewer(question: str, streamer: str, faq: str, context: str) -> str:

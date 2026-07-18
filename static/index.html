@@ -291,6 +291,8 @@ async function refresh() {
         (s.recap.discord ? block("Discord announcement", s.recap.discord) : "");
     }
 
+    $("demoBtn").textContent = s.demo_running ? "Stop demo" : "Run demo";
+
     if (!settingsLoaded && s.settings) {
       $("slug").value = s.settings.channel_slug || "";
       $("sname").value = s.settings.streamer_name || "";
@@ -314,6 +316,7 @@ $("recapBtn").onclick = async () => { await act("/api/recap"); refresh(); };
 $("demoBtn").onclick = async () => {
   const r = await act("/api/demo", { minutes: 3 });
   $("demoBtn").textContent = r.demo === "started" ? "Stop demo" : "Run demo";
+  refresh();
 };
 
 refresh();

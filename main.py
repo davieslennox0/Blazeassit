@@ -75,6 +75,7 @@ async def callback(code: str = "", state: str = ""):
 def state():
     s = engine.state()
     s["authorized"] = oauth.load_tokens() is not None
+    s["demo_running"] = _demo_task is not None and not _demo_task.done()
     return s
 
 
@@ -131,23 +132,31 @@ async def _demo(minutes: float):
     engine.on_stream(True)
     engine.viewers = random.randint(20, 40)
     end = time.time() + minutes * 60
-    while time.time() < end:
-        user, text = random.choice(DEMO_CHAT)
-        await asyncio.to_thread(engine.on_chat, f"{user}", text, None, None)
-        if random.random() < 0.12:
-            engine.on_signal("follows", 2, f"{random.choice(DEMO_CHAT)[0]} followed")
-        if random.random() < 0.05:
-            engine.on_signal("tips", 5, f"{random.choice(DEMO_CHAT)[0]} sent a tip")
-        # occasional burst to trigger hype detection
-        if random.random() < 0.08:
-            for _ in range(random.randint(8, 14)):
-                u, t = random.choice(DEMO_CHAT)
-                await asyncio.to_thread(engine.on_chat, u, t, None, None)
-                await asyncio.sleep(0.3)
-        engine.viewers = max(5, engine.viewers + random.randint(-3, 3))
-        await asyncio.sleep(random.uniform(2, 7))
-    engine.on_stream(False)
-    await asyncio.to_thread(engine.build_recap)
+    try:
+        while time.time() < end:
+            user, text = random.choice(DEMO_CHAT)
+            await asyncio.to_thread(engine.on_chat, f"{user}", text, None, None)
+            if random.random() < 0.12:
+                engine.on_signal("follows", 2, f"{random.choice(DEMO_CHAT)[0]} followed")
+            if random.random() < 0.05:
+                engine.on_signal("tips", 5, f"{random.choice(DEMO_CHAT)[0]} sent a tip")
+            # occasional burst to trigger hype detection
+            if random.random() < 0.08:
+                for _ in range(random.randint(8, 14)):
+                    u, t = random.choice(DEMO_CHAT)
+                    await asyncio.to_thread(engine.on_chat, u, t, None, None)
+                    await asyncio.sleep(0.3)
+            engine.viewers = max(5, engine.viewers + random.randint(-3, 3))
+            await asyncio.sleep(random.uniform(2, 7))
+        await asyncio.to_thread(engine.build_recap)
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        log.exception("demo run failed")
+    finally:
+        # Whatever happens, the demo must not leave the dashboard stuck on LIVE.
+        engine.live = False
+        engine.viewers = 0
 
 
 @app.post("/api/demo")
