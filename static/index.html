@@ -6,24 +6,24 @@
 <title>BlazeAssit — Control Room</title>
 <style>
   :root {
-    --bg:#0a0910; --card:rgba(255,255,255,.04); --card2:rgba(255,255,255,.06);
-    --line:rgba(255,255,255,.09); --ink:#f4f2ee; --ink2:#a9a4b8; --ink3:#6f6a80;
-    --gold:#f0b90b; --fire:#ff6a1f; --ember:#ff2d55; --good:#3ddc84;
+    --bg:#ffffff; --card:#ffffff; --card2:#faf8f5;
+    --line:#eae6df; --ink:#111013; --ink2:#5d5a66; --ink3:#96919e;
+    --gold:#d97706; --fire:#ff6a1f; --ember:#ff2d55; --good:#188a52;
     --grad:linear-gradient(100deg,#f0b90b 0%,#ff6a1f 55%,#ff2d55 100%);
   }
   * { box-sizing:border-box; margin:0; }
   body { background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,sans-serif;
     max-width:1060px; margin:0 auto; padding:16px 16px 48px; }
   body::before { content:""; position:fixed; inset:0; pointer-events:none;
-    background:radial-gradient(700px 420px at 90% -5%, rgba(255,106,31,.13), transparent 65%),
-               radial-gradient(600px 420px at -5% 40%, rgba(240,185,11,.07), transparent 60%); }
+    background:radial-gradient(700px 420px at 90% -5%, rgba(255,106,31,.09), transparent 65%),
+               radial-gradient(600px 420px at -5% 40%, rgba(240,185,11,.06), transparent 60%); }
 
   header { position:relative; display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:6px 0 16px; }
   .logo { display:flex; align-items:center; gap:8px; font-weight:800; font-size:18px; text-decoration:none; color:var(--ink); }
   .logo .f { filter:drop-shadow(0 0 10px rgba(255,106,31,.8)); }
   .pill { font-size:11.5px; font-weight:700; padding:3px 11px; border-radius:99px;
     border:1px solid var(--line); color:var(--ink3); letter-spacing:.02em; }
-  .pill.on { color:var(--good); border-color:rgba(61,220,132,.5); background:rgba(61,220,132,.07); }
+  .pill.on { color:var(--good); border-color:rgba(24,138,82,.4); background:rgba(24,138,82,.06); }
   .pill.live { color:#fff; background:var(--ember); border-color:var(--ember);
     box-shadow:0 0 14px rgba(255,45,85,.6); animation:pulse 1.8s infinite; }
   @keyframes pulse { 50% { opacity:.65; } }
@@ -35,7 +35,7 @@
   .col { display:grid; gap:14px; }
 
   section { background:var(--card); border:1px solid var(--line); border-radius:16px;
-    padding:15px 17px; backdrop-filter:blur(6px); }
+    padding:15px 17px; box-shadow:0 1px 3px rgba(17,16,19,.04); }
   h2 { font-size:12px; font-weight:700; color:var(--ink3); text-transform:uppercase;
     letter-spacing:.09em; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
 
@@ -43,8 +43,8 @@
   .cam { position:relative; border-radius:12px; overflow:hidden; background:#000; aspect-ratio:16/9; }
   .cam video { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
   .cam .off { position:absolute; inset:0; display:flex; flex-direction:column; gap:6px; align-items:center;
-    justify-content:center; color:var(--ink3); font-size:13px; background:
-    repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 12px, transparent 12px 24px); }
+    justify-content:center; color:#8a8794; font-size:13px; background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 12px, transparent 12px 24px); }
   .cam .off .ico { font-size:26px; opacity:.8; }
   .tools { display:flex; gap:9px; margin-top:11px; }
   .tool { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px;
@@ -54,7 +54,7 @@
   .tool.active { color:#16090a; background:var(--grad); border-color:transparent;
     box-shadow:0 3px 18px rgba(255,106,31,.4); }
   .vu { display:flex; gap:3px; align-items:flex-end; height:26px; margin-top:10px; }
-  .vu span { flex:1; background:rgba(255,255,255,.09); border-radius:2px; height:15%; transition:height .06s; }
+  .vu span { flex:1; background:#eee9e2; border-radius:2px; height:15%; transition:height .06s; }
   .vu span.hot { background:var(--grad); }
 
   .tiles { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }
@@ -73,15 +73,15 @@
 
   button, .btn { background:var(--grad); color:#16090a; border:0; border-radius:10px;
     font:700 13px system-ui; padding:9px 15px; cursor:pointer; }
-  button.ghost { background:transparent; color:var(--gold); border:1px solid rgba(240,185,11,.4); }
+  button.ghost { background:transparent; color:var(--gold); border:1px solid rgba(217,119,6,.4); }
   button.mini { font-size:11.5px; padding:5px 10px; }
-  input, textarea { width:100%; background:rgba(0,0,0,.35); border:1px solid var(--line); border-radius:10px;
+  input, textarea { width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px;
     color:var(--ink); font:14px system-ui; padding:8px 11px; margin:4px 0 10px; }
   textarea { min-height:72px; resize:vertical; }
   label { font-size:12px; color:var(--ink2); font-weight:650; }
   .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .toggle { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink2); }
-  .copyblock { background:rgba(0,0,0,.35); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+  .copyblock { background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
     font-size:13.5px; white-space:pre-wrap; margin:8px 0; position:relative; }
   .copyblock .cp { position:absolute; top:6px; right:6px; }
   #loginBox { position:relative; margin-bottom:14px; }
