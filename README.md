@@ -57,4 +57,4 @@ slug and FAQ notes, and go live.
 
 ## Stack
 
-FastAPI · python-socketio · Groq (`llama-3.3-70b-versatile`) · vanilla-JS dashboard · Caddy · pm2
+FastAPI · python-socketio · Groq (`llama-3.1-8b-instant`) · vanilla-JS dashboard · Caddy · pm2

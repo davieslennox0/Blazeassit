@@ -44,7 +44,7 @@ async def resolve_channel(slug: str) -> dict | None:
     body = await get("/channels", params={"slug[]": slug, "type": "all", "limit": 5})
     rows = body.get("data") or body.get("channels") or body
     if isinstance(rows, dict):
-        rows = rows.get("channels") or rows.get("items") or []
+        rows = rows.get("rows") or rows.get("channels") or rows.get("items") or []
     for ch in rows or []:
         if (ch.get("slug") or "").lower() == slug.lower():
             return ch
